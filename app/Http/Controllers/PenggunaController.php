@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StorePenggunaRequest;
-use App\Http\Requests\UpdatePenggunaRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class PenggunaController extends Controller
 {
@@ -32,11 +31,31 @@ class PenggunaController extends Controller
         return view('pengguna.create');
     }
 
-    public function store(StorePenggunaRequest $request)
+    public function store(Request $request)
     {
+        // ── Validasi (dipindah dari StorePenggunaRequest) ──────────────────
+        $data = $request->validate([
+            'no_pengguna' => 'required|string|max:20|unique:users,no_pengguna',
+            'name'        => 'required|string|max:100',
+            'email'       => 'required|email|max:150|unique:users,email',
+            'password'    => 'required|string|min:8|confirmed',
+            'no_hp'       => 'nullable|string|max:20',
+            'alamat'      => 'nullable|string|max:500',
+        ], [
+            'no_pengguna.required' => 'No pengguna wajib diisi.',
+            'no_pengguna.unique'   => 'No pengguna sudah terdaftar.',
+            'name.required'        => 'Nama wajib diisi.',
+            'email.required'       => 'Email wajib diisi.',
+            'email.email'          => 'Format email tidak valid.',
+            'email.unique'         => 'Email sudah terdaftar.',
+            'password.required'    => 'Password wajib diisi.',
+            'password.min'         => 'Password minimal 8 karakter.',
+            'password.confirmed'   => 'Konfirmasi password tidak cocok.',
+        ]);
+
         User::create([
-            ...$request->validated(),
-            'password' => Hash::make($request->validated()['password']),
+            ...$data,
+            'password' => Hash::make($data['password']),
             'role'     => 'user',
         ]);
 
@@ -55,15 +74,36 @@ class PenggunaController extends Controller
         return view('pengguna.edit', compact('pengguna'));
     }
 
-    public function update(UpdatePenggunaRequest $request, User $pengguna)
+    public function update(Request $request, User $pengguna)
     {
-        $data = $request->safe()->except('password');
+        // ── Validasi (dipindah dari UpdatePenggunaRequest) ─────────────────
+        $data = $request->validate([
+            'no_pengguna' => [
+                'required', 'string', 'max:20',
+                Rule::unique('users', 'no_pengguna')->ignore($pengguna->id),
+            ],
+            'name'     => 'required|string|max:100',
+            'email'    => [
+                'required', 'email', 'max:150',
+                Rule::unique('users', 'email')->ignore($pengguna->id),
+            ],
+            'password' => 'nullable|string|min:8|confirmed',
+            'no_hp'    => 'nullable|string|max:20',
+            'alamat'   => 'nullable|string|max:500',
+        ], [
+            'no_pengguna.unique' => 'No pengguna sudah digunakan.',
+            'email.unique'       => 'Email sudah digunakan.',
+            'password.min'       => 'Password minimal 8 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+        ]);
 
-        if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->validated()['password']);
+        $update = collect($data)->except('password')->toArray();
+
+        if (!empty($data['password'])) {
+            $update['password'] = Hash::make($data['password']);
         }
 
-        $pengguna->update($data);
+        $pengguna->update($update);
 
         return redirect()->route('pengguna.index')
                          ->with('success', 'Data pengguna berhasil diperbarui.');

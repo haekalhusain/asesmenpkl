@@ -2,30 +2,43 @@
 @section('title', 'Detail Peralatan')
 
 @section('content')
+
 <div class="page-header">
     <h1 class="page-title">Detail Peralatan</h1>
     <div class="action-group">
         <a href="{{ route('peralatan.edit', $peralatan) }}" class="btn btn-warning">Edit</a>
-        <a href="{{ route('peralatan.index') }}" class="btn btn-neutral">Kembali</a>
+        <a href="{{ route('peralatan.index') }}" class="btn btn-neutral">&#8592; Kembali</a>
     </div>
 </div>
 
 <div class="card" style="max-width:640px; padding:1.75rem;">
-    <div style="display:flex; gap:1.25rem; align-items:flex-start; margin-bottom:1.5rem; padding-bottom:1.25rem; border-bottom:1px solid var(--border);">
+
+    {{-- Header: foto + nama + kode --}}
+    <div style="display:flex; gap:1.25rem; align-items:flex-start;
+                margin-bottom:1.5rem; padding-bottom:1.25rem; border-bottom:1px solid var(--border);">
         @if($peralatan->foto)
-            <img src="{{ asset('storage/peralatan/'.$peralatan->foto) }}"
-                 style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">
+            <img src="{{ asset('storage/'.$peralatan->foto) }}"
+                 alt="{{ $peralatan->nama_peralatan }}"
+                 style="width:100px; height:100px; object-fit:cover;
+                        border-radius:8px; border:1px solid var(--border);">
         @else
-            <div style="width:100px;height:100px;background:var(--bg-secondary);border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--text-muted);">◈</div>
+            <div style="width:100px; height:100px; background:var(--bg-secondary);
+                        border-radius:8px; border:1px solid var(--border);
+                        display:flex; align-items:center; justify-content:center;
+                        font-size:2rem; color:var(--text-muted);">&#9672;</div>
         @endif
         <div>
-            <p style="font-family:'Rajdhani',sans-serif;font-size:1.4rem;font-weight:700;color:var(--text-primary);">
+            <p style="font-family:'Rajdhani',sans-serif; font-size:1.4rem;
+                      font-weight:700; color:var(--text-primary);">
                 {{ $peralatan->nama_peralatan }}
             </p>
-            <p style="color:var(--text-muted);font-size:0.85rem;margin-top:3px;">{{ $peralatan->kode_peralatan }}</p>
+            <p style="color:var(--text-muted); font-size:0.85rem; margin-top:3px;">
+                {{ $peralatan->kode_peralatan }}
+            </p>
         </div>
     </div>
 
+    {{-- Detail grid --}}
     <div class="detail-grid">
         <div class="detail-item">
             <label>Kategori</label>
@@ -57,4 +70,5 @@
         </div>
     </div>
 </div>
+
 @endsection

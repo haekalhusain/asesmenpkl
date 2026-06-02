@@ -2,19 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StorePeminjamanRequest;
+use App\Enums\LoanStatus;
 use App\Models\Peminjaman;
 use App\Models\Peralatan;
-use App\Services\PeminjamanService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
-    public function __construct(
-        private readonly PeminjamanService $peminjamanService
-    ) {}
-
     public function dashboard()
     {
         $user = Auth::user();
@@ -60,21 +56,69 @@ class UserController extends Controller
         return view('user.peminjaman.create', compact('peralatans'));
     }
 
-    public function store(StorePeminjamanRequest $request)
+    public function store(Request $request)
     {
-        // StorePeminjamanRequest sudah validasi stok,
-        // Service menangani transaction + lockForUpdate.
-        // Kita hanya perlu tambahkan pengguna_id dari session.
-        $data = array_merge($request->validated(), [
-            'pengguna_id'    => Auth::id(),
-            'kode_peminjaman' => 'PJM-' . date('Ymd') . '-' . str_pad(
-                Peminjaman::whereDate('created_at', today())->count() + 1,
-                3, '0', STR_PAD_LEFT
-            ),
+        // ── Validasi (dipindah dari StorePeminjamanRequest — konteks user) ─
+        $data = $request->validate([
+            'peralatan_id'            => 'required|exists:peralatans,id',
+            'jumlah'                  => 'required|integer|min:1',
+            'tanggal_pinjam'          => 'required|date',
+            'tanggal_rencana_kembali' => 'nullable|date|after_or_equal:tanggal_pinjam',
+            'keterangan'              => 'nullable|string|max:500',
+        ], [
+            'peralatan_id.required'                  => 'Peralatan wajib dipilih.',
+            'jumlah.required'                        => 'Jumlah wajib diisi.',
+            'jumlah.min'                             => 'Jumlah minimal 1.',
+            'tanggal_pinjam.required'                => 'Tanggal pinjam wajib diisi.',
+            'tanggal_rencana_kembali.after_or_equal' => 'Rencana kembali tidak boleh sebelum tanggal pinjam.',
         ]);
 
+        // ── Validasi stok (dipindah dari withValidator di StorePeminjamanRequest) ──
+        $peralatan = Peralatan::find($data['peralatan_id']);
+        if ($peralatan) {
+            if ($peralatan->stok <= 0) {
+                return back()->withInput()->withErrors([
+                    'peralatan_id' => "Peralatan \"{$peralatan->nama_peralatan}\" stoknya sudah habis.",
+                ]);
+            }
+            if (!$peralatan->hasStock((int) $data['jumlah'])) {
+                return back()->withInput()->withErrors([
+                    'jumlah' => "Stok tidak mencukupi. Stok tersedia: {$peralatan->stok} unit.",
+                ]);
+            }
+        }
+
+        // ── Business logic (dipindah dari PeminjamanService::store) ───────
+        $data['pengguna_id']      = Auth::id();
+        $data['kode_peminjaman']  = 'PJM-' . date('Ymd') . '-' . str_pad(
+            Peminjaman::whereDate('created_at', today())->count() + 1,
+            3, '0', STR_PAD_LEFT
+        );
+
         try {
-            $this->peminjamanService->store($data);
+            DB::transaction(function () use ($data) {
+                $peralatan = Peralatan::lockForUpdate()->findOrFail($data['peralatan_id']);
+
+                if (!$peralatan->hasStock($data['jumlah'])) {
+                    throw new \RuntimeException(
+                        "Stok tidak mencukupi. Stok tersedia: {$peralatan->stok} unit."
+                    );
+                }
+
+                Peminjaman::create([
+                    'kode_peminjaman'         => $data['kode_peminjaman'],
+                    'pengguna_id'             => $data['pengguna_id'],
+                    'peralatan_id'            => $data['peralatan_id'],
+                    'jumlah'                  => $data['jumlah'],
+                    'tanggal_pinjam'          => $data['tanggal_pinjam'],
+                    'tanggal_rencana_kembali' => $data['tanggal_rencana_kembali'] ?? null,
+                    'status'                  => LoanStatus::Dipinjam,
+                    'keterangan'              => $data['keterangan'] ?? null,
+                ]);
+
+                $peralatan->decrement('stok', $data['jumlah']);
+            });
+
             return redirect()->route('user.peminjaman.index')
                              ->with('success', 'Peminjaman berhasil dicatat.');
         } catch (\RuntimeException $e) {
@@ -84,7 +128,6 @@ class UserController extends Controller
 
     public function show(Peminjaman $peminjaman)
     {
-        // Pastikan user hanya bisa lihat miliknya sendiri
         if ($peminjaman->pengguna_id !== Auth::id()) {
             abort(403, 'Anda tidak berhak mengakses data ini.');
         }

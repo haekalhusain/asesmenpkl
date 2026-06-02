@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Portal Peminjaman') – AsesmenPKL</title>
+    <title>@yield('title', 'Portal Peminjaman') &ndash; AsesmenPKL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     @stack('styles')
 </head>
@@ -28,7 +31,7 @@
             <li>
                 <a href="{{ route('user.dashboard') }}"
                    class="{{ request()->routeIs('user.dashboard') ? 'active' : '' }}">
-                    <span class="sidebar-icon">▣</span> Dashboard
+                    <span class="sidebar-icon">&#9635;</span> Dashboard
                 </a>
             </li>
         </ul>
@@ -37,8 +40,8 @@
         <ul class="sidebar-menu">
             <li>
                 <a href="{{ route('user.peminjaman.index') }}"
-                   class="{{ request()->routeIs('user.peminjaman.*') ? 'active' : '' }}">
-                    <span class="sidebar-icon">≡</span> Riwayat Peminjaman
+                   class="{{ request()->routeIs('user.peminjaman.index') ? 'active' : '' }}">
+                    <span class="sidebar-icon">&#8801;</span> Riwayat Peminjaman
                 </a>
             </li>
             <li>

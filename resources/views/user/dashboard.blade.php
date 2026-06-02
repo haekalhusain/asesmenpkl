@@ -2,6 +2,7 @@
 @section('title', 'Dashboard')
 
 @section('content')
+
 <div class="page-header">
     <h1 class="page-title">Dashboard</h1>
     <a href="{{ route('user.peminjaman.create') }}" class="btn btn-primary">
@@ -11,21 +12,21 @@
 
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="stat-icon si-gold">≡</div>
+        <div class="stat-icon si-gold">&#8801;</div>
         <div>
             <div class="stat-number">{{ $totalPeminjaman }}</div>
             <div class="stat-label">Total Peminjaman</div>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon si-red">◷</div>
+        <div class="stat-icon si-red">&#9719;</div>
         <div>
             <div class="stat-number">{{ $sedangDipinjam }}</div>
             <div class="stat-label">Sedang Dipinjam</div>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon si-green">✓</div>
+        <div class="stat-icon si-green">&#10003;</div>
         <div>
             <div class="stat-number">{{ $sudahKembali }}</div>
             <div class="stat-label">Sudah Dikembalikan</div>
@@ -53,13 +54,16 @@
             <tr>
                 <td>{{ $item->peralatan->nama_peralatan ?? '-' }}</td>
                 <td>{{ \Carbon\Carbon::parse($item->tanggal_pinjam)->format('d M Y') }}</td>
-                <td>{{ $item->tanggal_rencana_kembali
-                        ? \Carbon\Carbon::parse($item->tanggal_rencana_kembali)->format('d M Y')
-                        : '-' }}</td>
                 <td>
-                    @if($item->status === 'dipinjam')
+                    {{ $item->tanggal_rencana_kembali
+                        ? \Carbon\Carbon::parse($item->tanggal_rencana_kembali)->format('d M Y')
+                        : '-' }}
+                </td>
+                <td>
+                    @php $st = $item->status->value ?? $item->status; @endphp
+                    @if($st === 'dipinjam')
                         <span class="badge badge-warning">Dipinjam</span>
-                    @elseif($item->status === 'dikembalikan')
+                    @elseif($st === 'dikembalikan')
                         <span class="badge badge-success">Dikembalikan</span>
                     @else
                         <span class="badge badge-danger">Terlambat</span>
@@ -73,7 +77,7 @@
             <tr>
                 <td colspan="5">
                     <div class="empty-state">
-                        <div class="empty-icon">≡</div>
+                        <div class="empty-icon">&#8801;</div>
                         <p>Belum ada data peminjaman</p>
                     </div>
                 </td>
@@ -82,4 +86,5 @@
         </tbody>
     </table>
 </div>
+
 @endsection

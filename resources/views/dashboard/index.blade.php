@@ -2,34 +2,35 @@
 @section('title', 'Dashboard')
 
 @section('content')
+
 <div class="page-header">
     <h1 class="page-title">Dashboard</h1>
 </div>
 
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="stat-icon si-gold">◉</div>
+        <div class="stat-icon si-gold">&#9673;</div>
         <div>
             <div class="stat-number">{{ $totalPengguna }}</div>
             <div class="stat-label">Total Pengguna</div>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon si-blue">◈</div>
+        <div class="stat-icon si-blue">&#9672;</div>
         <div>
             <div class="stat-number">{{ $totalPeralatan }}</div>
             <div class="stat-label">Total Peralatan</div>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon si-green">≡</div>
+        <div class="stat-icon si-green">&#8801;</div>
         <div>
             <div class="stat-number">{{ $totalPeminjaman }}</div>
             <div class="stat-label">Total Peminjaman</div>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon si-red">◷</div>
+        <div class="stat-icon si-red">&#9719;</div>
         <div>
             <div class="stat-number">{{ $peminjamanAktif }}</div>
             <div class="stat-label">Sedang Dipinjam</div>
@@ -71,7 +72,7 @@
             <tr>
                 <td colspan="4">
                     <div class="empty-state">
-                        <div class="empty-icon">≡</div>
+                        <div class="empty-icon">&#8801;</div>
                         <p>Belum ada data peminjaman</p>
                     </div>
                 </td>
@@ -80,4 +81,5 @@
         </tbody>
     </table>
 </div>
+
 @endsection

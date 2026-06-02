@@ -2,11 +2,12 @@
 @section('title', 'Detail Pengguna')
 
 @section('content')
+
 <div class="page-header">
     <h1 class="page-title">Detail Pengguna</h1>
     <div class="action-group">
         <a href="{{ route('pengguna.edit', $pengguna) }}" class="btn btn-warning">Edit</a>
-        <a href="{{ route('pengguna.index') }}" class="btn btn-neutral">Kembali</a>
+        <a href="{{ route('pengguna.index') }}" class="btn btn-neutral">&#8592; Kembali</a>
     </div>
 </div>
 
@@ -62,13 +63,16 @@
             <tr>
                 <td>{{ $p->peralatan->nama_peralatan ?? '-' }}</td>
                 <td>{{ \Carbon\Carbon::parse($p->tanggal_pinjam)->format('d M Y') }}</td>
-                <td>{{ $p->tanggal_kembali
-                        ? \Carbon\Carbon::parse($p->tanggal_kembali)->format('d M Y')
-                        : '-' }}</td>
                 <td>
-                    @if($p->status === 'dipinjam')
+                    {{ $p->tanggal_kembali
+                        ? \Carbon\Carbon::parse($p->tanggal_kembali)->format('d M Y')
+                        : '-' }}
+                </td>
+                <td>
+                    @php $st = $p->status->value ?? $p->status; @endphp
+                    @if($st === 'dipinjam')
                         <span class="badge badge-warning">Dipinjam</span>
-                    @elseif($p->status === 'dikembalikan')
+                    @elseif($st === 'dikembalikan')
                         <span class="badge badge-success">Dikembalikan</span>
                     @else
                         <span class="badge badge-danger">Terlambat</span>
@@ -80,4 +84,5 @@
     </table>
 </div>
 @endif
+
 @endsection

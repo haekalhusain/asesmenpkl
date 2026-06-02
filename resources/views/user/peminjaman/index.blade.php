@@ -2,6 +2,7 @@
 @section('title', 'Riwayat Peminjaman')
 
 @section('content')
+
 <div class="page-header">
     <h1 class="page-title">Riwayat Peminjaman</h1>
     <a href="{{ route('user.peminjaman.create') }}" class="btn btn-primary">
@@ -15,14 +16,16 @@
               style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
             <div class="search-box">
                 <span class="search-icon">&#9906;</span>
-                <input type="text" name="search" placeholder="Cari nama peralatan..."
+                <input type="text"
+                       name="search"
+                       placeholder="Cari nama peralatan..."
                        value="{{ request('search') }}">
             </div>
             <select name="status" class="filter-select">
                 <option value="">Semua Status</option>
-                <option value="dipinjam"     {{ request('status') == 'dipinjam'     ? 'selected' : '' }}>Dipinjam</option>
-                <option value="dikembalikan" {{ request('status') == 'dikembalikan' ? 'selected' : '' }}>Dikembalikan</option>
-                <option value="terlambat"    {{ request('status') == 'terlambat'    ? 'selected' : '' }}>Terlambat</option>
+                <option value="dipinjam"     {{ request('status') === 'dipinjam'     ? 'selected' : '' }}>Dipinjam</option>
+                <option value="dikembalikan" {{ request('status') === 'dikembalikan' ? 'selected' : '' }}>Dikembalikan</option>
+                <option value="terlambat"    {{ request('status') === 'terlambat'    ? 'selected' : '' }}>Terlambat</option>
             </select>
             <button type="submit" class="btn btn-neutral">Filter</button>
             @if(request('search') || request('status'))
@@ -52,13 +55,16 @@
                 <td>{{ $item->peralatan->nama_peralatan ?? '-' }}</td>
                 <td>{{ $item->jumlah }} unit</td>
                 <td>{{ \Carbon\Carbon::parse($item->tanggal_pinjam)->format('d M Y') }}</td>
-                <td>{{ $item->tanggal_rencana_kembali
-                        ? \Carbon\Carbon::parse($item->tanggal_rencana_kembali)->format('d M Y')
-                        : '-' }}</td>
                 <td>
-                    @if($item->status === 'dipinjam')
+                    {{ $item->tanggal_rencana_kembali
+                        ? \Carbon\Carbon::parse($item->tanggal_rencana_kembali)->format('d M Y')
+                        : '-' }}
+                </td>
+                <td>
+                    @php $st = $item->status->value ?? $item->status; @endphp
+                    @if($st === 'dipinjam')
                         <span class="badge badge-warning">Dipinjam</span>
-                    @elseif($item->status === 'dikembalikan')
+                    @elseif($st === 'dikembalikan')
                         <span class="badge badge-success">Dikembalikan</span>
                     @else
                         <span class="badge badge-danger">Terlambat</span>
@@ -72,7 +78,7 @@
             <tr>
                 <td colspan="8">
                     <div class="empty-state">
-                        <div class="empty-icon">≡</div>
+                        <div class="empty-icon">&#8801;</div>
                         <p>Belum ada data peminjaman</p>
                     </div>
                 </td>
@@ -85,4 +91,5 @@
         {{ $peminjamans->withQueryString()->links('vendor.pagination.custom') }}
     </div>
 </div>
+
 @endsection

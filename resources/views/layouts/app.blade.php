@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Admin') – AsesmenPKL</title>
+    <title>@yield('title', 'Admin') &ndash; AsesmenPKL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     @stack('styles')
 </head>
@@ -28,7 +31,7 @@
             <li>
                 <a href="{{ route('dashboard') }}"
                    class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                    <span class="sidebar-icon">▣</span> Dashboard
+                    <span class="sidebar-icon">&#9635;</span> Dashboard
                 </a>
             </li>
         </ul>
@@ -38,13 +41,13 @@
             <li>
                 <a href="{{ route('pengguna.index') }}"
                    class="{{ request()->routeIs('pengguna.*') ? 'active' : '' }}">
-                    <span class="sidebar-icon">◉</span> Data Pengguna
+                    <span class="sidebar-icon">&#9673;</span> Data Pengguna
                 </a>
             </li>
             <li>
                 <a href="{{ route('peralatan.index') }}"
                    class="{{ request()->routeIs('peralatan.*') ? 'active' : '' }}">
-                    <span class="sidebar-icon">◈</span> Data Peralatan
+                    <span class="sidebar-icon">&#9672;</span> Data Peralatan
                 </a>
             </li>
         </ul>
@@ -54,7 +57,7 @@
             <li>
                 <a href="{{ route('peminjaman.index') }}"
                    class="{{ request()->routeIs('peminjaman.*') ? 'active' : '' }}">
-                    <span class="sidebar-icon">≡</span> Peminjaman
+                    <span class="sidebar-icon">&#8801;</span> Peminjaman
                 </a>
             </li>
         </ul>

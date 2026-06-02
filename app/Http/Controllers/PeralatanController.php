@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StorePeralatanRequest;
-use App\Http\Requests\UpdatePeralatanRequest;
 use App\Models\Peralatan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class PeralatanController extends Controller
 {
@@ -32,13 +31,29 @@ class PeralatanController extends Controller
         return view('peralatan.create');
     }
 
-    public function store(StorePeralatanRequest $request)
+    public function store(Request $request)
     {
-        $data = $request->validated();
+        // ── Validasi (dipindah dari StorePeralatanRequest) ─────────────────
+        $data = $request->validate([
+            'kode_peralatan' => 'required|string|max:30|unique:peralatans,kode_peralatan',
+            'nama_peralatan' => 'required|string|max:150',
+            'kategori'       => 'nullable|string|max:100',
+            'stok'           => 'required|integer|min:0',
+            'kondisi'        => 'required|in:baik,rusak_ringan,rusak_berat',
+            'deskripsi'      => 'nullable|string|max:1000',
+            'foto'           => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ], [
+            'kode_peralatan.required' => 'Kode peralatan wajib diisi.',
+            'kode_peralatan.unique'   => 'Kode peralatan sudah digunakan.',
+            'nama_peralatan.required' => 'Nama peralatan wajib diisi.',
+            'stok.min'                => 'Stok tidak boleh negatif.',
+            'kondisi.in'              => 'Kondisi tidak valid.',
+            'foto.image'              => 'File harus berupa gambar.',
+            'foto.max'                => 'Ukuran foto maksimal 2MB.',
+        ]);
 
         if ($request->hasFile('foto')) {
-            $data['foto'] = $request->file('foto')
-                                    ->store('peralatan', 'public');
+            $data['foto'] = $request->file('foto')->store('peralatan', 'public');
         }
 
         Peralatan::create($data);
@@ -58,19 +73,35 @@ class PeralatanController extends Controller
         return view('peralatan.edit', compact('peralatan'));
     }
 
-    public function update(UpdatePeralatanRequest $request, Peralatan $peralatan)
+    public function update(Request $request, Peralatan $peralatan)
     {
-        $data = $request->validated();
+        // ── Validasi (dipindah dari UpdatePeralatanRequest) ────────────────
+        $data = $request->validate([
+            'kode_peralatan' => [
+                'required', 'string', 'max:30',
+                Rule::unique('peralatans', 'kode_peralatan')->ignore($peralatan->id),
+            ],
+            'nama_peralatan' => 'required|string|max:150',
+            'kategori'       => 'nullable|string|max:100',
+            'stok'           => 'required|integer|min:0',
+            'kondisi'        => 'required|in:baik,rusak_ringan,rusak_berat',
+            'deskripsi'      => 'nullable|string|max:1000',
+            'foto'           => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ], [
+            'kode_peralatan.unique'   => 'Kode peralatan sudah digunakan.',
+            'nama_peralatan.required' => 'Nama peralatan wajib diisi.',
+            'stok.min'                => 'Stok tidak boleh negatif.',
+            'kondisi.in'              => 'Kondisi tidak valid.',
+            'foto.image'              => 'File harus berupa gambar.',
+            'foto.max'                => 'Ukuran foto maksimal 2MB.',
+        ]);
 
         if ($request->hasFile('foto')) {
-            // Hapus foto lama jika ada
             if ($peralatan->foto) {
                 Storage::disk('public')->delete($peralatan->foto);
             }
-            $data['foto'] = $request->file('foto')
-                                    ->store('peralatan', 'public');
+            $data['foto'] = $request->file('foto')->store('peralatan', 'public');
         } else {
-            // Jangan hapus foto lama jika tidak ada upload baru
             unset($data['foto']);
         }
 
