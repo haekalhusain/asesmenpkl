@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@yield('title', 'Portal Peminjaman') – AsesmenPKL</title>
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    @stack('styles')
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="{{ route('user.dashboard') }}" class="navbar-brand">AsesmenPKL</a>
+    <div class="navbar-right">
+        <span>{{ Auth::user()->name }}</span>
+        <span class="badge badge-neutral">{{ Auth::user()->no_pengguna }}</span>
+        <form action="{{ route('logout') }}" method="POST">
+            @csrf
+            <button type="submit" class="btn btn-outline-danger">Keluar</button>
+        </form>
+    </div>
+</nav>
+
+<div class="layout">
+    <aside class="sidebar">
+        <p class="sidebar-section">Menu</p>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="{{ route('user.dashboard') }}"
+                   class="{{ request()->routeIs('user.dashboard') ? 'active' : '' }}">
+                    <span class="sidebar-icon">▣</span> Dashboard
+                </a>
+            </li>
+        </ul>
+
+        <p class="sidebar-section">Peminjaman</p>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="{{ route('user.peminjaman.index') }}"
+                   class="{{ request()->routeIs('user.peminjaman.*') ? 'active' : '' }}">
+                    <span class="sidebar-icon">≡</span> Riwayat Peminjaman
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('user.peminjaman.create') }}"
+                   class="{{ request()->routeIs('user.peminjaman.create') ? 'active' : '' }}">
+                    <span class="sidebar-icon">+</span> Tambah Peminjaman
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        @if(session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
+
+        @yield('content')
+    </main>
+</div>
+
+@stack('scripts')
+</body>
+</html>
