@@ -36,18 +36,23 @@
             </li>
         </ul>
 
+        <p class="sidebar-section">Barang</p>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="{{ route('user.barang.index') }}"
+                   class="{{ request()->routeIs('user.barang.*') ? 'active' : '' }}">
+                    <span class="sidebar-icon">&#9671;</span> Data Barang
+                </a>
+            </li>
+        </ul>
+
         <p class="sidebar-section">Peminjaman</p>
         <ul class="sidebar-menu">
+
             <li>
                 <a href="{{ route('user.peminjaman.index') }}"
                    class="{{ request()->routeIs('user.peminjaman.index') ? 'active' : '' }}">
-                    <span class="sidebar-icon">&#8801;</span> Riwayat Peminjaman
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('user.peminjaman.create') }}"
-                   class="{{ request()->routeIs('user.peminjaman.create') ? 'active' : '' }}">
-                    <span class="sidebar-icon">+</span> Tambah Peminjaman
+                    <span class="sidebar-icon">&#8801;</span> Peminjaman
                 </a>
             </li>
         </ul>

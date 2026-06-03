@@ -18,8 +18,8 @@
     <div class="stat-card">
         <div class="stat-icon si-blue">&#9672;</div>
         <div>
-            <div class="stat-number">{{ $totalPeralatan }}</div>
-            <div class="stat-label">Total Peralatan</div>
+            <div class="stat-number">{{ $totalBarang }}</div>
+            <div class="stat-label">Total Barang</div>
         </div>
     </div>
     <div class="stat-card">
@@ -47,7 +47,7 @@
         <thead>
             <tr>
                 <th>Peminjam</th>
-                <th>Peralatan</th>
+                <th>Barang</th>
                 <th>Tanggal Pinjam</th>
                 <th>Status</th>
             </tr>
@@ -55,13 +55,14 @@
         <tbody>
             @forelse($peminjamanTerbaru as $item)
             <tr>
-                <td>{{ $item->pengguna->name ?? '-' }}</td>
-                <td>{{ $item->peralatan->nama_peralatan ?? '-' }}</td>
+                <td>{{ $item->pengguna->nama_peminjam ?? '-' }}</td>
+                <td>{{ $item->barang->nama_barang ?? '-' }}</td>
                 <td>{{ \Carbon\Carbon::parse($item->tanggal_pinjam)->format('d M Y') }}</td>
                 <td>
-                    @if($item->status === 'dipinjam')
+                    @php $st = $item->status instanceof \App\Enums\LoanStatus ? $item->status->value : $item->status; @endphp
+                    @if($st === 'Dipinjam')
                         <span class="badge badge-warning">Dipinjam</span>
-                    @elseif($item->status === 'dikembalikan')
+                    @elseif($st === 'Dikembalikan')
                         <span class="badge badge-success">Dikembalikan</span>
                     @else
                         <span class="badge badge-danger">Terlambat</span>

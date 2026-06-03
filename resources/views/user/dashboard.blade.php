@@ -32,6 +32,13 @@
             <div class="stat-label">Sudah Dikembalikan</div>
         </div>
     </div>
+    <div class="stat-card">
+        <div class="stat-icon si-blue">&#9671;</div>
+        <div>
+            <div class="stat-number">{{ $totalBarang }}</div>
+            <div class="stat-label">Total Barang</div>
+        </div>
+    </div>
 </div>
 
 <div class="table-wrapper">
@@ -42,7 +49,7 @@
     <table>
         <thead>
             <tr>
-                <th>Peralatan</th>
+                <th>Barang</th>
                 <th>Tanggal Pinjam</th>
                 <th>Rencana Kembali</th>
                 <th>Status</th>
@@ -52,7 +59,7 @@
         <tbody>
             @forelse($riwayatTerbaru as $item)
             <tr>
-                <td>{{ $item->peralatan->nama_peralatan ?? '-' }}</td>
+                <td>{{ $item->barang->nama_barang ?? '-' }}</td>
                 <td>{{ \Carbon\Carbon::parse($item->tanggal_pinjam)->format('d M Y') }}</td>
                 <td>
                     {{ $item->tanggal_rencana_kembali
@@ -61,9 +68,9 @@
                 </td>
                 <td>
                     @php $st = $item->status->value ?? $item->status; @endphp
-                    @if($st === 'dipinjam')
+                    @if($st === 'Dipinjam')
                         <span class="badge badge-warning">Dipinjam</span>
-                    @elseif($st === 'dikembalikan')
+                    @elseif($st === 'Dikembalikan')
                         <span class="badge badge-success">Dikembalikan</span>
                     @else
                         <span class="badge badge-danger">Terlambat</span>

@@ -1,10 +1,10 @@
 @extends('layouts.app')
-@section('title', 'Edit Pengguna')
+@section('title', 'Edit Peminjam')
 
 @section('content')
 
 <div class="page-header">
-    <h1 class="page-title">Edit Pengguna</h1>
+    <h1 class="page-title">Edit Peminjam</h1>
     <a href="{{ route('pengguna.index') }}" class="btn btn-neutral">&#8592; Kembali</a>
 </div>
 
@@ -13,41 +13,41 @@
         @csrf
         @method('PUT')
 
-        {{-- No Pengguna --}}
+        {{-- Nama Peminjam --}}
         <div class="form-group">
-            <label class="form-label" for="no_pengguna">No Pengguna</label>
+            <label class="form-label" for="nama_peminjam">Nama Peminjam</label>
             <input type="text"
-                   id="no_pengguna"
-                   name="no_pengguna"
-                   class="form-control {{ $errors->has('no_pengguna') ? 'is-invalid' : '' }}"
-                   value="{{ old('no_pengguna', $pengguna->no_pengguna) }}">
-            @error('no_pengguna')
+                   id="nama_peminjam"
+                   name="nama_peminjam"
+                   class="form-control {{ $errors->has('nama_peminjam') ? 'is-invalid' : '' }}"
+                   value="{{ old('nama_peminjam', $pengguna->nama_peminjam) }}">
+            @error('nama_peminjam')
                 <span class="invalid-feedback">{{ $message }}</span>
             @enderror
         </div>
 
-        {{-- Nama Lengkap --}}
+        {{-- Kelas --}}
         <div class="form-group">
-            <label class="form-label" for="name">Nama Lengkap</label>
+            <label class="form-label" for="kelas">Kelas</label>
             <input type="text"
-                   id="name"
-                   name="name"
-                   class="form-control {{ $errors->has('name') ? 'is-invalid' : '' }}"
-                   value="{{ old('name', $pengguna->name) }}">
-            @error('name')
+                   id="kelas"
+                   name="kelas"
+                   class="form-control {{ $errors->has('kelas') ? 'is-invalid' : '' }}"
+                   value="{{ old('kelas', $pengguna->kelas) }}">
+            @error('kelas')
                 <span class="invalid-feedback">{{ $message }}</span>
             @enderror
         </div>
 
-        {{-- Email --}}
+        {{-- Jurusan --}}
         <div class="form-group">
-            <label class="form-label" for="email">Email</label>
-            <input type="email"
-                   id="email"
-                   name="email"
-                   class="form-control {{ $errors->has('email') ? 'is-invalid' : '' }}"
-                   value="{{ old('email', $pengguna->email) }}">
-            @error('email')
+            <label class="form-label" for="jurusan">Jurusan</label>
+            <input type="text"
+                   id="jurusan"
+                   name="jurusan"
+                   class="form-control {{ $errors->has('jurusan') ? 'is-invalid' : '' }}"
+                   value="{{ old('jurusan', $pengguna->jurusan) }}">
+            @error('jurusan')
                 <span class="invalid-feedback">{{ $message }}</span>
             @enderror
         </div>
@@ -58,44 +58,11 @@
             <input type="text"
                    id="no_hp"
                    name="no_hp"
-                   class="form-control"
+                   class="form-control {{ $errors->has('no_hp') ? 'is-invalid' : '' }}"
                    value="{{ old('no_hp', $pengguna->no_hp) }}">
-        </div>
-
-        {{-- Alamat --}}
-        <div class="form-group">
-            <label class="form-label" for="alamat">Alamat</label>
-            <textarea id="alamat"
-                      name="alamat"
-                      class="form-control"
-                      rows="3">{{ old('alamat', $pengguna->alamat) }}</textarea>
-        </div>
-
-        {{-- Password Baru --}}
-        <div class="form-group">
-            <label class="form-label" for="password">
-                Password Baru
-                <span style="color:var(--text-muted); font-weight:400; text-transform:none;">
-                    (kosongkan jika tidak diganti)
-                </span>
-            </label>
-            <input type="password"
-                   id="password"
-                   name="password"
-                   class="form-control {{ $errors->has('password') ? 'is-invalid' : '' }}"
-                   placeholder="Minimal 8 karakter">
-            @error('password')
+            @error('no_hp')
                 <span class="invalid-feedback">{{ $message }}</span>
             @enderror
-        </div>
-
-        {{-- Konfirmasi Password --}}
-        <div class="form-group">
-            <label class="form-label" for="password_confirmation">Konfirmasi Password Baru</label>
-            <input type="password"
-                   id="password_confirmation"
-                   name="password_confirmation"
-                   class="form-control">
         </div>
 
         <div class="form-actions">

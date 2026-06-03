@@ -3,30 +3,36 @@
 namespace App\Http\Controllers;
 
 use App\Enums\LoanStatus;
+use App\Exports\PeminjamanExport;
+use App\Models\Barang;
+use App\Models\Peminjam;
 use App\Models\Peminjaman;
-use App\Models\Peralatan;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PeminjamanController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Peminjaman::with(['pengguna', 'peralatan']);
+        $query = Peminjaman::with(['pengguna', 'barang']);
 
         if ($request->filled('search')) {
             $q = $request->search;
             $query->where(function ($q2) use ($q) {
-                $q2->whereHas('pengguna', fn($q3) => $q3->where('name', 'like', "%$q%"))
-                   ->orWhereHas('peralatan', fn($q3) => $q3->where('nama_peralatan', 'like', "%$q%"))
+                $q2->whereHas('pengguna', fn($q3) => $q3->where('nama_peminjam', 'like', "%$q%"))
+                   ->orWhereHas('barang', fn($q3) =>
+                       $q3->where('nama_barang', 'like', "%$q%")
+                          ->orWhere('kategori_barang', 'like', "%$q%")
+                   )
                    ->orWhere('kode_peminjaman', 'like', "%$q%");
             });
         }
 
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $statusValue = ucfirst(strtolower($request->status));
+            $query->where('status', $statusValue);
         }
 
         $peminjamans = $query->latest()->paginate(10);
@@ -35,69 +41,51 @@ class PeminjamanController extends Controller
 
     public function create()
     {
-        $penggunas  = User::where('role', 'user')->orderBy('name')->get();
-        $peralatans = Peralatan::where('stok', '>', 0)->orderBy('nama_peralatan')->get();
-        return view('peminjaman.create', compact('penggunas', 'peralatans'));
+        $penggunas = Peminjam::orderBy('nama_peminjam')->get();
+        $barangs   = Barang::where('stok', '>', 0)->orderBy('nama_barang')->get();
+        return view('peminjaman.create', compact('penggunas', 'barangs'));
     }
 
     public function store(Request $request)
     {
-        $isAdmin = auth()->user()->role === 'admin';
-
-        // ── Validasi (dipindah dari StorePeminjamanRequest) ────────────────
         $data = $request->validate([
-            'kode_peminjaman'         => $isAdmin
-                                            ? 'required|string|max:50|unique:peminjamans,kode_peminjaman'
-                                            : 'nullable|string|max:50',
-            'pengguna_id'             => $isAdmin ? 'required|exists:users,id' : 'nullable',
-            'peralatan_id'            => 'required|exists:peralatans,id',
+            'pengguna_id'             => 'required|exists:peminjam,id',
+            'barang_id'               => 'required|exists:barang,id',
             'jumlah'                  => 'required|integer|min:1',
             'tanggal_pinjam'          => 'required|date',
             'tanggal_rencana_kembali' => 'nullable|date|after_or_equal:tanggal_pinjam',
             'keterangan'              => 'nullable|string|max:500',
         ], [
-            'kode_peminjaman.required'              => 'Kode peminjaman wajib diisi.',
-            'kode_peminjaman.unique'                => 'Kode peminjaman sudah digunakan.',
-            'pengguna_id.required'                  => 'Peminjam wajib dipilih.',
-            'peralatan_id.required'                 => 'Peralatan wajib dipilih.',
-            'jumlah.required'                       => 'Jumlah wajib diisi.',
-            'jumlah.min'                            => 'Jumlah minimal 1.',
-            'tanggal_pinjam.required'               => 'Tanggal pinjam wajib diisi.',
+            'pengguna_id.required'                   => 'Peminjam wajib dipilih.',
+            'barang_id.required'                     => 'Barang wajib dipilih.',
+            'jumlah.required'                        => 'Jumlah wajib diisi.',
+            'jumlah.min'                             => 'Jumlah minimal 1.',
+            'tanggal_pinjam.required'                => 'Tanggal pinjam wajib diisi.',
             'tanggal_rencana_kembali.after_or_equal' => 'Rencana kembali tidak boleh sebelum tanggal pinjam.',
         ]);
 
-        // ── Validasi stok (dipindah dari withValidator di StorePeminjamanRequest) ──
-        $peralatan = Peralatan::find($data['peralatan_id']);
-        if ($peralatan) {
-            if ($peralatan->stok <= 0) {
-                return back()->withInput()->withErrors([
-                    'peralatan_id' => "Peralatan \"{$peralatan->nama_peralatan}\" stoknya sudah habis.",
-                ]);
-            }
-            if (!$peralatan->hasStock((int) $data['jumlah'])) {
-                return back()->withInput()->withErrors([
-                    'jumlah' => "Stok tidak mencukupi. Stok tersedia: {$peralatan->stok} unit.",
-                ]);
-            }
+        $barang = Barang::find($data['barang_id']);
+        if (!$barang->hasStock((int) $data['jumlah'])) {
+            return back()->withInput()->withErrors([
+                'jumlah' => "Stok tidak mencukupi. Stok tersedia: {$barang->stok} unit.",
+            ]);
         }
 
-        // ── Business logic (dipindah dari PeminjamanService::store) ───────
         try {
             DB::transaction(function () use ($data) {
-                // Lock row agar tidak ada race condition saat dua request masuk bersamaan
-                $peralatan = Peralatan::lockForUpdate()->findOrFail($data['peralatan_id']);
+                $barang = Barang::lockForUpdate()->findOrFail($data['barang_id']);
 
-                // Double-check stok di dalam transaction
-                if (!$peralatan->hasStock($data['jumlah'])) {
-                    throw new \RuntimeException(
-                        "Stok tidak mencukupi. Stok tersedia: {$peralatan->stok} unit."
-                    );
+                if (!$barang->hasStock($data['jumlah'])) {
+                    throw new \RuntimeException("Stok tidak mencukupi. Stok tersedia: {$barang->stok} unit.");
                 }
 
                 Peminjaman::create([
-                    'kode_peminjaman'         => $data['kode_peminjaman'],
+                    'kode_peminjaman'         => 'PJM-' . date('Ymd') . '-' . str_pad(
+                        Peminjaman::whereDate('created_at', today())->count() + 1,
+                        3, '0', STR_PAD_LEFT
+                    ),
                     'pengguna_id'             => $data['pengguna_id'],
-                    'peralatan_id'            => $data['peralatan_id'],
+                    'barang_id'               => $data['barang_id'],
                     'jumlah'                  => $data['jumlah'],
                     'tanggal_pinjam'          => $data['tanggal_pinjam'],
                     'tanggal_rencana_kembali' => $data['tanggal_rencana_kembali'] ?? null,
@@ -105,7 +93,7 @@ class PeminjamanController extends Controller
                     'keterangan'              => $data['keterangan'] ?? null,
                 ]);
 
-                $peralatan->decrement('stok', $data['jumlah']);
+                $barang->decrement('stok', $data['jumlah']);
             });
 
             return redirect()->route('peminjaman.index')
@@ -117,67 +105,58 @@ class PeminjamanController extends Controller
 
     public function show(Peminjaman $peminjaman)
     {
-        $peminjaman->load(['pengguna', 'peralatan']);
+        $peminjaman->load(['pengguna', 'barang']);
         return view('peminjaman.show', compact('peminjaman'));
     }
 
     public function edit(Peminjaman $peminjaman)
     {
-        $penggunas  = User::where('role', 'user')->orderBy('name')->get();
-        $peralatans = Peralatan::orderBy('nama_peralatan')->get();
-        return view('peminjaman.edit', compact('peminjaman', 'penggunas', 'peralatans'));
+        $penggunas = Peminjam::orderBy('nama_peminjam')->get();
+        $barangs   = Barang::orderBy('nama_barang')->get();
+        return view('peminjaman.edit', compact('peminjaman', 'penggunas', 'barangs'));
     }
 
     public function update(Request $request, Peminjaman $peminjaman)
     {
-        // ── Validasi (dipindah dari UpdatePeminjamanRequest) ───────────────
         $data = $request->validate([
-            'pengguna_id'             => 'required|exists:users,id',
-            'peralatan_id'            => 'required|exists:peralatans,id',
+            'pengguna_id'             => 'required|exists:peminjam,id',
+            'barang_id'               => 'required|exists:barang,id',
             'jumlah'                  => 'required|integer|min:1',
             'tanggal_pinjam'          => 'required|date',
             'tanggal_rencana_kembali' => 'nullable|date|after_or_equal:tanggal_pinjam',
-            'tanggal_kembali'         => 'nullable|date|after_or_equal:tanggal_pinjam',
-            'status'                  => 'required|in:dipinjam,dikembalikan,terlambat',
+            'tanggal_kembali'         => 'nullable|date',
+            'status'                  => 'required|in:Dipinjam,Dikembalikan,Terlambat',
             'keterangan'              => 'nullable|string|max:500',
         ], [
-            'pengguna_id.required'           => 'Peminjam wajib dipilih.',
-            'peralatan_id.required'          => 'Peralatan wajib dipilih.',
-            'jumlah.min'                     => 'Jumlah minimal 1.',
-            'tanggal_pinjam.required'        => 'Tanggal pinjam wajib diisi.',
-            'status.in'                      => 'Status tidak valid.',
-            'tanggal_kembali.after_or_equal' => 'Tanggal kembali tidak boleh sebelum tanggal pinjam.',
+            'pengguna_id.required'    => 'Peminjam wajib dipilih.',
+            'barang_id.required'      => 'Barang wajib dipilih.',
+            'jumlah.min'              => 'Jumlah minimal 1.',
+            'tanggal_pinjam.required' => 'Tanggal pinjam wajib diisi.',
+            'status.in'               => 'Status tidak valid.',
         ]);
 
-        // ── Business logic (dipindah dari PeminjamanService::update) ──────
         try {
             DB::transaction(function () use ($peminjaman, $data) {
                 $statusLama = $peminjaman->status;
                 $statusBaru = LoanStatus::from($data['status']);
 
                 if ($statusLama !== $statusBaru) {
-                    $peralatan = Peralatan::lockForUpdate()->findOrFail($peminjaman->peralatan_id);
+                    $barang = Barang::lockForUpdate()->findOrFail($peminjaman->barang_id);
 
-                    if ($statusBaru === LoanStatus::Dikembalikan
-                        && $statusLama === LoanStatus::Dipinjam) {
-                        // Barang dikembalikan → stok naik
-                        $peralatan->increment('stok', $peminjaman->jumlah);
+                    if ($statusBaru === LoanStatus::Dikembalikan && $statusLama === LoanStatus::Dipinjam) {
+                        $barang->increment('stok', $peminjaman->jumlah);
 
-                    } elseif ($statusBaru === LoanStatus::Dipinjam
-                        && $statusLama === LoanStatus::Dikembalikan) {
-                        // Koreksi: dikembalikan → dipinjam lagi → stok turun
-                        if (!$peralatan->hasStock($data['jumlah'])) {
-                            throw new \RuntimeException(
-                                "Stok tidak mencukupi untuk koreksi ini. Stok tersedia: {$peralatan->stok} unit."
-                            );
+                    } elseif ($statusBaru === LoanStatus::Dipinjam && $statusLama !== LoanStatus::Dipinjam) {
+                        if (!$barang->hasStock($data['jumlah'])) {
+                            throw new \RuntimeException("Stok tidak mencukupi. Stok tersedia: {$barang->stok} unit.");
                         }
-                        $peralatan->decrement('stok', $data['jumlah']);
+                        $barang->decrement('stok', $data['jumlah']);
                     }
                 }
 
                 $peminjaman->update([
                     'pengguna_id'             => $data['pengguna_id'],
-                    'peralatan_id'            => $data['peralatan_id'],
+                    'barang_id'               => $data['barang_id'],
                     'jumlah'                  => $data['jumlah'],
                     'tanggal_pinjam'          => $data['tanggal_pinjam'],
                     'tanggal_rencana_kembali' => $data['tanggal_rencana_kembali'] ?? null,
@@ -196,15 +175,49 @@ class PeminjamanController extends Controller
 
     public function destroy(Peminjaman $peminjaman)
     {
-        // ── Business logic (dipindah dari PeminjamanService::destroy) ─────
         DB::transaction(function () use ($peminjaman) {
             if ($peminjaman->status === LoanStatus::Dipinjam) {
-                $peminjaman->peralatan->increment('stok', $peminjaman->jumlah);
+                $peminjaman->barang->increment('stok', $peminjaman->jumlah);
             }
             $peminjaman->delete();
         });
 
         return redirect()->route('peminjaman.index')
                          ->with('success', 'Data peminjaman berhasil dihapus.');
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $filename = 'Peminjaman_' . date('d-m-Y_H-i-s') . '.xlsx';
+        return Excel::download(
+            new PeminjamanExport($request->search, $request->status),
+            $filename
+        );
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $query = Peminjaman::with(['pengguna', 'barang']);
+
+        if ($request->filled('search')) {
+            $q = $request->search;
+            $query->where(function ($q2) use ($q) {
+                $q2->whereHas('pengguna', fn($q3) => $q3->where('nama_peminjam', 'like', "%$q%"))
+                   ->orWhereHas('barang', fn($q3) =>
+                       $q3->where('nama_barang', 'like', "%$q%")
+                          ->orWhere('kategori_barang', 'like', "%$q%")
+                   )
+                   ->orWhere('kode_peminjaman', 'like', "%$q%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $peminjamans = $query->latest()->get();
+
+        $pdf = Pdf::loadView('peminjaman.export_pdf', compact('peminjamans'));
+        return $pdf->download('Peminjaman_' . date('d-m-Y_H-i-s') . '.pdf');
     }
 }

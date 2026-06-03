@@ -1,13 +1,11 @@
 @extends('layouts.user')
-@section('title', 'Riwayat Peminjaman')
+@section('title', 'Peminjaman Saya')
 
 @section('content')
 
 <div class="page-header">
-    <h1 class="page-title">Riwayat Peminjaman</h1>
-    <a href="{{ route('user.peminjaman.create') }}" class="btn btn-primary">
-        + Tambah Peminjaman
-    </a>
+    <h1 class="page-title">Peminjaman Saya</h1>
+    <a href="{{ route('user.peminjaman.create') }}" class="btn btn-primary">+ Tambah Peminjaman</a>
 </div>
 
 <div class="table-wrapper">
@@ -18,14 +16,13 @@
                 <span class="search-icon">&#9906;</span>
                 <input type="text"
                        name="search"
-                       placeholder="Cari nama peralatan..."
+                       placeholder="Cari nama barang..."
                        value="{{ request('search') }}">
             </div>
             <select name="status" class="filter-select">
                 <option value="">Semua Status</option>
-                <option value="dipinjam"     {{ request('status') === 'dipinjam'     ? 'selected' : '' }}>Dipinjam</option>
-                <option value="dikembalikan" {{ request('status') === 'dikembalikan' ? 'selected' : '' }}>Dikembalikan</option>
-                <option value="terlambat"    {{ request('status') === 'terlambat'    ? 'selected' : '' }}>Terlambat</option>
+                <option value="Dipinjam"     {{ request('status') === 'Dipinjam'     ? 'selected' : '' }}>Dipinjam</option>
+                <option value="Dikembalikan" {{ request('status') === 'Dikembalikan' ? 'selected' : '' }}>Dikembalikan</option>
             </select>
             <button type="submit" class="btn btn-neutral">Filter</button>
             @if(request('search') || request('status'))
@@ -39,9 +36,9 @@
             <tr>
                 <th>No</th>
                 <th>Kode</th>
-                <th>Peralatan</th>
+                <th>Barang</th>
                 <th>Jumlah</th>
-                <th>Tanggal Pinjam</th>
+                <th>Tgl Pinjam</th>
                 <th>Rencana Kembali</th>
                 <th>Status</th>
                 <th>Aksi</th>
@@ -52,8 +49,8 @@
             <tr>
                 <td>{{ $peminjamans->firstItem() + $i }}</td>
                 <td>{{ $item->kode_peminjaman }}</td>
-                <td>{{ $item->peralatan->nama_peralatan ?? '-' }}</td>
-                <td>{{ $item->jumlah }} unit</td>
+                <td>{{ $item->barang->nama_barang ?? '-' }}</td>
+                <td>{{ $item->jumlah }}</td>
                 <td>{{ \Carbon\Carbon::parse($item->tanggal_pinjam)->format('d M Y') }}</td>
                 <td>
                     {{ $item->tanggal_rencana_kembali
@@ -61,17 +58,29 @@
                         : '-' }}
                 </td>
                 <td>
-                    @php $st = $item->status->value ?? $item->status; @endphp
-                    @if($st === 'dipinjam')
+                    @php $st = $item->status instanceof \App\Enums\LoanStatus ? $item->status->value : $item->status; @endphp
+                    @if($st === 'Dipinjam')
                         <span class="badge badge-warning">Dipinjam</span>
-                    @elseif($st === 'dikembalikan')
+                    @elseif($st === 'Dikembalikan')
                         <span class="badge badge-success">Dikembalikan</span>
                     @else
                         <span class="badge badge-danger">Terlambat</span>
                     @endif
                 </td>
                 <td>
-                    <a href="{{ route('user.peminjaman.show', $item) }}" class="btn btn-neutral">Detail</a>
+                    <div class="action-group">
+                        <a href="{{ route('user.peminjaman.show', $item) }}" class="btn btn-neutral">Detail</a>
+
+                        @if($st === 'Dipinjam')
+                            <a href="{{ route('user.peminjaman.edit', $item) }}" class="btn btn-warning">Edit</a>
+                            <form method="POST" action="{{ route('user.peminjaman.destroy', $item) }}"
+                                  onsubmit="return confirm('Hapus data peminjaman ini? Stok barang akan dikembalikan.')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger">Hapus</button>
+                            </form>
+                        @endif
+                    </div>
                 </td>
             </tr>
             @empty

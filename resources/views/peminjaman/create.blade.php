@@ -12,21 +12,6 @@
     <form method="POST" action="{{ route('peminjaman.store') }}" novalidate>
         @csrf
 
-        {{-- Kode Peminjaman --}}
-        <div class="form-group">
-            <label class="form-label" for="kode_peminjaman">Kode Peminjaman</label>
-            <input type="text"
-                   id="kode_peminjaman"
-                   name="kode_peminjaman"
-                   class="form-control {{ $errors->has('kode_peminjaman') ? 'is-invalid' : '' }}"
-                   value="{{ old('kode_peminjaman', 'PJM-'.date('Ymd').'-'.str_pad(rand(1,999),3,'0',STR_PAD_LEFT)) }}"
-                   placeholder="Contoh: PJM-20240101-001">
-            @error('kode_peminjaman')
-                <span class="invalid-feedback">{{ $message }}</span>
-            @enderror
-        </div>
-
-        {{-- Peminjam --}}
         <div class="form-group">
             <label class="form-label" for="pengguna_id">Peminjam</label>
             <select id="pengguna_id"
@@ -36,7 +21,10 @@
                 @foreach($penggunas as $pengguna)
                     <option value="{{ $pengguna->id }}"
                             {{ old('pengguna_id') == $pengguna->id ? 'selected' : '' }}>
-                        {{ $pengguna->name }} ({{ $pengguna->no_pengguna }})
+                        {{ $pengguna->nama_peminjam }}
+                        @if($pengguna->kelas)
+                            ({{ $pengguna->kelas }})
+                        @endif
                     </option>
                 @endforeach
             </select>
@@ -45,21 +33,21 @@
             @enderror
         </div>
 
-        {{-- Peralatan --}}
+        {{-- Barang --}}
         <div class="form-group">
-            <label class="form-label" for="peralatan_id">Peralatan</label>
-            <select id="peralatan_id"
-                    name="peralatan_id"
-                    class="form-control {{ $errors->has('peralatan_id') ? 'is-invalid' : '' }}">
-                <option value="">-- Pilih Peralatan --</option>
-                @foreach($peralatans as $peralatan)
-                    <option value="{{ $peralatan->id }}"
-                            {{ old('peralatan_id') == $peralatan->id ? 'selected' : '' }}>
-                        {{ $peralatan->nama_peralatan }} &mdash; Stok: {{ $peralatan->stok }}
+            <label class="form-label" for="barang_id">Barang</label>
+            <select id="barang_id"
+                    name="barang_id"
+                    class="form-control {{ $errors->has('barang_id') ? 'is-invalid' : '' }}">
+                <option value="">-- Pilih Barang --</option>
+                @foreach($barangs as $barang)
+                    <option value="{{ $barang->id }}"
+                            {{ old('barang_id') == $barang->id ? 'selected' : '' }}>
+                        {{ $barang->nama_barang }} &mdash; Stok: {{ $barang->stok }}
                     </option>
                 @endforeach
             </select>
-            @error('peralatan_id')
+            @error('barang_id')
                 <span class="invalid-feedback">{{ $message }}</span>
             @enderror
         </div>

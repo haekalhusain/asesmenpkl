@@ -3,17 +3,18 @@
 namespace App\Models;
 
 use App\Enums\LoanStatus;
+use App\Models\Peminjam;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Peminjaman extends Model
 {
-    protected $table = 'peminjamans';
+    protected $table = 'peminjaman';
 
     protected $fillable = [
         'kode_peminjaman',
         'pengguna_id',
-        'peralatan_id',
+        'barang_id',
         'jumlah',
         'tanggal_pinjam',
         'tanggal_rencana_kembali',
@@ -22,10 +23,6 @@ class Peminjaman extends Model
         'keterangan',
     ];
 
-    /**
-     * Cast kolom status ke Native Enum LoanStatus.
-     * Laravel otomatis konversi string ↔ Enum saat read/write.
-     */
     protected $casts = [
         'status'                  => LoanStatus::class,
         'tanggal_pinjam'          => 'date',
@@ -33,23 +30,20 @@ class Peminjaman extends Model
         'tanggal_kembali'         => 'date',
     ];
 
-    // ── Relasi ──────────────────────────────────────────────
+    // ── Relasi ──────────────────────────────────────────────────────────────
 
     public function pengguna(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'pengguna_id');
+        return $this->belongsTo(Peminjam::class, 'pengguna_id');
     }
 
-    public function peralatan(): BelongsTo
+    public function barang(): BelongsTo
     {
-        return $this->belongsTo(Peralatan::class, 'peralatan_id');
+        return $this->belongsTo(Barang::class, 'barang_id');
     }
 
-    // ── Helper ──────────────────────────────────────────────
+    // ── Helper ──────────────────────────────────────────────────────────────
 
-    /**
-     * Apakah peminjaman ini sedang aktif (belum dikembalikan)?
-     */
     public function isActive(): bool
     {
         return $this->status === LoanStatus::Dipinjam;

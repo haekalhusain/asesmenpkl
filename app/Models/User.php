@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -31,10 +31,14 @@ class User extends Authenticatable
         'password'          => 'hashed',
     ];
 
+    // ── Relasi ──────────────────────────────────────────────────────────────
+
     public function peminjamans(): HasMany
     {
         return $this->hasMany(Peminjaman::class, 'pengguna_id');
     }
+
+    // ── Helper ──────────────────────────────────────────────────────────────
 
     public function isAdmin(): bool
     {

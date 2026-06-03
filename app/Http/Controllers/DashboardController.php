@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Peralatan;
 use App\Models\Peminjaman;
+use App\Models\Barang;
+use App\Models\User;
 
 class DashboardController extends Controller
 {
@@ -12,10 +12,10 @@ class DashboardController extends Controller
     {
         return view('dashboard.index', [
             'totalPengguna'    => User::where('role', 'user')->count(),
-            'totalPeralatan'   => Peralatan::count(),
+            'totalBarang'      => Barang::count(),
             'totalPeminjaman'  => Peminjaman::count(),
-            'peminjamanAktif'  => Peminjaman::where('status', 'dipinjam')->count(),
-            'peminjamanTerbaru'=> Peminjaman::with(['pengguna', 'peralatan'])
+            'peminjamanAktif'  => Peminjaman::where('status', 'Dipinjam')->count(),
+            'peminjamanTerbaru'=> Peminjaman::with(['pengguna', 'barang'])
                                     ->latest()
                                     ->take(5)
                                     ->get(),

@@ -26,10 +26,10 @@
                 {{ $peminjaman->kode_peminjaman }}
             </p>
         </div>
-        @php $status = $peminjaman->status->value ?? $peminjaman->status; @endphp
-        @if($status === 'dipinjam')
+        @php $st = $peminjaman->status instanceof \App\Enums\LoanStatus ? $peminjaman->status->value : $peminjaman->status; @endphp
+        @if($st === 'Dipinjam')
             <span class="badge badge-warning" style="font-size:0.82rem; padding:5px 12px;">Dipinjam</span>
-        @elseif($status === 'dikembalikan')
+        @elseif($st === 'Dikembalikan')
             <span class="badge badge-success" style="font-size:0.82rem; padding:5px 12px;">Dikembalikan</span>
         @else
             <span class="badge badge-danger" style="font-size:0.82rem; padding:5px 12px;">Terlambat</span>
@@ -40,19 +40,19 @@
     <div class="detail-grid">
         <div class="detail-item">
             <label>Peminjam</label>
-            <p>{{ $peminjaman->pengguna->name ?? '-' }}</p>
+            <p>{{ $peminjaman->pengguna->nama_peminjam ?? '-' }}</p>
         </div>
         <div class="detail-item">
-            <label>No Pengguna</label>
-            <p>{{ $peminjaman->pengguna->no_pengguna ?? '-' }}</p>
+            <label>Kelas</label>
+            <p>{{ $peminjaman->pengguna->kelas ?? '-' }}</p>
         </div>
         <div class="detail-item">
-            <label>Peralatan</label>
-            <p>{{ $peminjaman->peralatan->nama_peralatan ?? '-' }}</p>
+            <label>Barang</label>
+            <p>{{ $peminjaman->barang->nama_barang ?? '-' }}</p>
         </div>
         <div class="detail-item">
-            <label>Kode Peralatan</label>
-            <p>{{ $peminjaman->peralatan->kode_peralatan ?? '-' }}</p>
+            <label>Kategori</label>
+            <p>{{ $peminjaman->barang->kategori_barang ?? '-' }}</p>
         </div>
         <div class="detail-item">
             <label>Jumlah</label>

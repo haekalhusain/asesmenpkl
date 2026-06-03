@@ -1,79 +1,46 @@
-@extends('layouts.app')
+@extends('layouts.user')
 @section('title', 'Edit Peminjaman')
 
 @section('content')
 
 <div class="page-header">
     <h1 class="page-title">Edit Peminjaman</h1>
-    <a href="{{ route('peminjaman.index') }}" class="btn btn-neutral">&#8592; Kembali</a>
+    <a href="{{ route('user.peminjaman.index') }}" class="btn btn-neutral">&#8592; Kembali</a>
 </div>
 
 <div class="form-card">
-    <form method="POST" action="{{ route('peminjaman.update', $peminjaman) }}" novalidate>
+    <form method="POST" action="{{ route('user.peminjaman.update', $peminjaman) }}" novalidate>
         @csrf
         @method('PUT')
 
         {{-- Kode Peminjaman (readonly) --}}
         <div class="form-group">
-            <label class="form-label" for="kode_peminjaman">Kode Peminjaman</label>
+            <label class="form-label">Kode Peminjaman</label>
             <input type="text"
-                   id="kode_peminjaman"
                    class="form-control"
                    value="{{ $peminjaman->kode_peminjaman }}"
                    readonly
                    style="opacity:0.5; cursor:not-allowed;">
         </div>
 
+        {{-- Barang (readonly) --}}
         <div class="form-group">
-            <label class="form-label" for="pengguna_id">Peminjam</label>
-            <select id="pengguna_id"
-                    name="pengguna_id"
-                    class="form-control {{ $errors->has('pengguna_id') ? 'is-invalid' : '' }}">
-                @foreach($penggunas as $pengguna)
-                    <option value="{{ $pengguna->id }}"
-                            {{ old('pengguna_id', $peminjaman->pengguna_id) == $pengguna->id ? 'selected' : '' }}>
-                        {{ $pengguna->nama_peminjam }}
-                        @if($pengguna->kelas)
-                            ({{ $pengguna->kelas }})
-                        @endif
-                    </option>
-                @endforeach
-            </select>
-            @error('pengguna_id')
-                <span class="invalid-feedback">{{ $message }}</span>
-            @enderror
+            <label class="form-label">Barang</label>
+            <input type="text"
+                   class="form-control"
+                   value="{{ $peminjaman->barang->nama_barang ?? '-' }}"
+                   readonly
+                   style="opacity:0.5; cursor:not-allowed;">
         </div>
 
-        {{-- Barang --}}
+        {{-- Jumlah (readonly) --}}
         <div class="form-group">
-            <label class="form-label" for="barang_id">Barang</label>
-            <select id="barang_id"
-                    name="barang_id"
-                    class="form-control {{ $errors->has('barang_id') ? 'is-invalid' : '' }}">
-                @foreach($barangs as $barang)
-                    <option value="{{ $barang->id }}"
-                            {{ old('barang_id', $peminjaman->barang_id) == $barang->id ? 'selected' : '' }}>
-                        {{ $barang->nama_barang }}
-                    </option>
-                @endforeach
-            </select>
-            @error('barang_id')
-                <span class="invalid-feedback">{{ $message }}</span>
-            @enderror
-        </div>
-
-        {{-- Jumlah --}}
-        <div class="form-group">
-            <label class="form-label" for="jumlah">Jumlah</label>
-            <input type="number"
-                   id="jumlah"
-                   name="jumlah"
-                   class="form-control {{ $errors->has('jumlah') ? 'is-invalid' : '' }}"
-                   value="{{ old('jumlah', $peminjaman->jumlah) }}"
-                   min="1">
-            @error('jumlah')
-                <span class="invalid-feedback">{{ $message }}</span>
-            @enderror
+            <label class="form-label">Jumlah</label>
+            <input type="text"
+                   class="form-control"
+                   value="{{ $peminjaman->jumlah }} unit"
+                   readonly
+                   style="opacity:0.5; cursor:not-allowed;">
         </div>
 
         {{-- Tanggal Pinjam --}}
@@ -129,9 +96,6 @@
                 @php $currentStatus = $peminjaman->status instanceof \App\Enums\LoanStatus ? $peminjaman->status->value : $peminjaman->status; @endphp
                 <option value="Dipinjam"     {{ old('status', $currentStatus) === 'Dipinjam'     ? 'selected' : '' }}>Dipinjam</option>
                 <option value="Dikembalikan" {{ old('status', $currentStatus) === 'Dikembalikan' ? 'selected' : '' }}>Dikembalikan</option>
-                @if($currentStatus === 'Terlambat')
-                    <option value="Terlambat" selected disabled>Terlambat (legacy)</option>
-                @endif
             </select>
             @error('status')
                 <span class="invalid-feedback">{{ $message }}</span>
@@ -149,7 +113,7 @@
 
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-            <a href="{{ route('peminjaman.index') }}" class="btn btn-neutral">Batal</a>
+            <a href="{{ route('user.peminjaman.index') }}" class="btn btn-neutral">Batal</a>
         </div>
     </form>
 </div>

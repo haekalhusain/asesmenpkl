@@ -2,23 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Models\Peminjam;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
 
 class PenggunaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::where('role', 'user');
+        $query = Peminjam::query();
 
         if ($request->filled('search')) {
             $q = $request->search;
             $query->where(fn($q2) =>
-                $q2->where('name', 'like', "%$q%")
-                   ->orWhere('email', 'like', "%$q%")
-                   ->orWhere('no_pengguna', 'like', "%$q%")
+                $q2->where('nama_peminjam', 'like', "%$q%")
+                   ->orWhere('kelas', 'like', "%$q%")
+                   ->orWhere('jurusan', 'like', "%$q%")
+                   ->orWhere('no_hp', 'like', "%$q%")
             );
         }
 
@@ -33,87 +32,56 @@ class PenggunaController extends Controller
 
     public function store(Request $request)
     {
-        // ── Validasi (dipindah dari StorePenggunaRequest) ──────────────────
         $data = $request->validate([
-            'no_pengguna' => 'required|string|max:20|unique:users,no_pengguna',
-            'name'        => 'required|string|max:100',
-            'email'       => 'required|email|max:150|unique:users,email',
-            'password'    => 'required|string|min:8|confirmed',
-            'no_hp'       => 'nullable|string|max:20',
-            'alamat'      => 'nullable|string|max:500',
+            'nama_peminjam' => 'required|string|max:150',
+            'kelas'         => 'required|string|max:50',
+            'jurusan'       => 'nullable|string|max:100',
+            'no_hp'         => 'nullable|string|max:20',
         ], [
-            'no_pengguna.required' => 'No pengguna wajib diisi.',
-            'no_pengguna.unique'   => 'No pengguna sudah terdaftar.',
-            'name.required'        => 'Nama wajib diisi.',
-            'email.required'       => 'Email wajib diisi.',
-            'email.email'          => 'Format email tidak valid.',
-            'email.unique'         => 'Email sudah terdaftar.',
-            'password.required'    => 'Password wajib diisi.',
-            'password.min'         => 'Password minimal 8 karakter.',
-            'password.confirmed'   => 'Konfirmasi password tidak cocok.',
+            'nama_peminjam.required' => 'Nama peminjam wajib diisi.',
+            'kelas.required'         => 'Kelas wajib diisi.',
         ]);
 
-        User::create([
-            ...$data,
-            'password' => Hash::make($data['password']),
-            'role'     => 'user',
-        ]);
+        Peminjam::create($data);
 
         return redirect()->route('pengguna.index')
-                         ->with('success', 'Pengguna berhasil ditambahkan.');
+                         ->with('success', 'Peminjam berhasil ditambahkan.');
     }
 
-    public function show(User $pengguna)
+    public function show(Peminjam $pengguna)
     {
-        $pengguna->load(['peminjamans.peralatan']);
+        $pengguna->load('peminjaman.barang');
         return view('pengguna.show', compact('pengguna'));
     }
 
-    public function edit(User $pengguna)
+    public function edit(Peminjam $pengguna)
     {
         return view('pengguna.edit', compact('pengguna'));
     }
 
-    public function update(Request $request, User $pengguna)
+    public function update(Request $request, Peminjam $pengguna)
     {
-        // ── Validasi (dipindah dari UpdatePenggunaRequest) ─────────────────
         $data = $request->validate([
-            'no_pengguna' => [
-                'required', 'string', 'max:20',
-                Rule::unique('users', 'no_pengguna')->ignore($pengguna->id),
-            ],
-            'name'     => 'required|string|max:100',
-            'email'    => [
-                'required', 'email', 'max:150',
-                Rule::unique('users', 'email')->ignore($pengguna->id),
-            ],
-            'password' => 'nullable|string|min:8|confirmed',
-            'no_hp'    => 'nullable|string|max:20',
-            'alamat'   => 'nullable|string|max:500',
+            'nama_peminjam' => 'required|string|max:150',
+            'kelas'         => 'required|string|max:50',
+            'jurusan'       => 'nullable|string|max:100',
+            'no_hp'         => 'nullable|string|max:20',
         ], [
-            'no_pengguna.unique' => 'No pengguna sudah digunakan.',
-            'email.unique'       => 'Email sudah digunakan.',
-            'password.min'       => 'Password minimal 8 karakter.',
-            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+            'nama_peminjam.required' => 'Nama peminjam wajib diisi.',
+            'kelas.required'         => 'Kelas wajib diisi.',
         ]);
 
-        $update = collect($data)->except('password')->toArray();
-
-        if (!empty($data['password'])) {
-            $update['password'] = Hash::make($data['password']);
-        }
-
-        $pengguna->update($update);
+        $pengguna->update($data);
 
         return redirect()->route('pengguna.index')
-                         ->with('success', 'Data pengguna berhasil diperbarui.');
+                         ->with('success', 'Data peminjam berhasil diperbarui.');
     }
 
-    public function destroy(User $pengguna)
+    public function destroy(Peminjam $pengguna)
     {
         $pengguna->delete();
 
         return redirect()->route('pengguna.index')
-                         ->with('success', 'Pengguna berhasil dihapus.');
+                         ->with('success', 'Peminjam berhasil dihapus.');
     }
 }

@@ -2,20 +2,12 @@
 
 namespace App\Enums;
 
-/**
- * Native Enum untuk status peminjaman.
- * Dengan enum, status tidak bisa diisi sembarangan string —
- * harus salah satu dari tiga nilai ini.
- */
 enum LoanStatus: string
 {
-    case Dipinjam      = 'dipinjam';
-    case Dikembalikan  = 'dikembalikan';
-    case Terlambat     = 'terlambat';
+    case Dipinjam     = 'Dipinjam';
+    case Dikembalikan = 'Dikembalikan';
+    case Terlambat    = 'Terlambat';
 
-    /**
-     * Label untuk ditampilkan di UI.
-     */
     public function label(): string
     {
         return match($this) {
@@ -25,9 +17,6 @@ enum LoanStatus: string
         };
     }
 
-    /**
-     * CSS class badge untuk tampilan.
-     */
     public function badgeClass(): string
     {
         return match($this) {

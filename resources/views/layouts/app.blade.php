@@ -41,13 +41,13 @@
             <li>
                 <a href="{{ route('pengguna.index') }}"
                    class="{{ request()->routeIs('pengguna.*') ? 'active' : '' }}">
-                    <span class="sidebar-icon">&#9673;</span> Data Pengguna
+                    <span class="sidebar-icon">&#9673;</span> Data Peminjam
                 </a>
             </li>
             <li>
-                <a href="{{ route('peralatan.index') }}"
-                   class="{{ request()->routeIs('peralatan.*') ? 'active' : '' }}">
-                    <span class="sidebar-icon">&#9672;</span> Data Peralatan
+                <a href="{{ route('barang.index') }}"
+                   class="{{ request()->routeIs('barang.*') ? 'active' : '' }}">
+                    <span class="sidebar-icon">&#9672;</span> Data Barang
                 </a>
             </li>
         </ul>

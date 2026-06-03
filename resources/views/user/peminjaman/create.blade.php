@@ -12,23 +12,21 @@
     <form method="POST" action="{{ route('user.peminjaman.store') }}" novalidate>
         @csrf
 
-        {{-- Peralatan --}}
+        {{-- Barang --}}
         <div class="form-group">
-            <label class="form-label" for="peralatan_id">Peralatan</label>
-            <select id="peralatan_id"
-                    name="peralatan_id"
-                    class="form-control {{ $errors->has('peralatan_id') ? 'is-invalid' : '' }}">
-                <option value="">-- Pilih Peralatan --</option>
-                @foreach($peralatans as $peralatan)
-                    <option value="{{ $peralatan->id }}"
-                            {{ old('peralatan_id') == $peralatan->id ? 'selected' : '' }}>
-                        {{ $peralatan->nama_peralatan }}
-                        ({{ $peralatan->kode_peralatan }})
-                        &mdash; Stok: {{ $peralatan->stok }}
+            <label class="form-label" for="barang_id">Barang</label>
+            <select id="barang_id"
+                    name="barang_id"
+                    class="form-control {{ $errors->has('barang_id') ? 'is-invalid' : '' }}">
+                <option value="">-- Pilih Barang --</option>
+                @foreach($barangs as $barang)
+                    <option value="{{ $barang->id }}"
+                            {{ old('barang_id') == $barang->id ? 'selected' : '' }}>
+                        {{ $barang->nama_barang }} &mdash; Stok: {{ $barang->stok }}
                     </option>
                 @endforeach
             </select>
-            @error('peralatan_id')
+            @error('barang_id')
                 <span class="invalid-feedback">{{ $message }}</span>
             @enderror
         </div>
@@ -83,7 +81,7 @@
                       name="keterangan"
                       class="form-control"
                       rows="3"
-                      placeholder="Keperluan peminjaman, dll.">{{ old('keterangan') }}</textarea>
+                      placeholder="Catatan tambahan">{{ old('keterangan') }}</textarea>
         </div>
 
         <div class="form-actions">

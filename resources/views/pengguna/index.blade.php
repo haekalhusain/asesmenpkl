@@ -5,7 +5,7 @@
 
 <div class="page-header">
     <h1 class="page-title">Data Pengguna</h1>
-    <a href="{{ route('pengguna.create') }}" class="btn btn-primary">+ Tambah Pengguna</a>
+
 </div>
 
 <div class="table-wrapper">
@@ -15,7 +15,7 @@
                 <span class="search-icon">&#9906;</span>
                 <input type="text"
                        name="search"
-                       placeholder="Cari nama, email, no pengguna..."
+                       placeholder="Cari nama, kelas, jurusan, no hp..."
                        value="{{ request('search') }}">
             </div>
         </form>
@@ -28,9 +28,9 @@
         <thead>
             <tr>
                 <th>No</th>
-                <th>No Pengguna</th>
-                <th>Nama</th>
-                <th>Email</th>
+                <th>Nama Peminjam</th>
+                <th>Kelas</th>
+                <th>Jurusan</th>
                 <th>No HP</th>
                 <th>Aksi</th>
             </tr>
@@ -39,20 +39,14 @@
             @forelse($penggunas as $i => $pengguna)
             <tr>
                 <td>{{ $penggunas->firstItem() + $i }}</td>
-                <td>{{ $pengguna->no_pengguna }}</td>
-                <td>{{ $pengguna->name }}</td>
-                <td>{{ $pengguna->email }}</td>
+                <td>{{ $pengguna->nama_peminjam }}</td>
+                <td>{{ $pengguna->kelas }}</td>
+                <td>{{ $pengguna->jurusan ?? '-' }}</td>
                 <td>{{ $pengguna->no_hp ?? '-' }}</td>
                 <td>
                     <div class="action-group">
                         <a href="{{ route('pengguna.show', $pengguna) }}" class="btn btn-neutral">Detail</a>
-                        <a href="{{ route('pengguna.edit', $pengguna) }}" class="btn btn-warning">Edit</a>
-                        <form method="POST" action="{{ route('pengguna.destroy', $pengguna) }}"
-                              onsubmit="return confirm('Hapus pengguna ini?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger">Hapus</button>
-                        </form>
+                       
                     </div>
                 </td>
             </tr>
@@ -61,7 +55,7 @@
                 <td colspan="6">
                     <div class="empty-state">
                         <div class="empty-icon">&#9673;</div>
-                        <p>Belum ada data pengguna</p>
+                        <p>Belum ada data peminjam</p>
                     </div>
                 </td>
             </tr>
